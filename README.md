@@ -45,3 +45,4 @@ If there's any issues during setup and runninng the cron job, feel free to post 
 ## Original Repo
 [ORIGINAL | cmyui - Akatsuki-cron-py](https://github.com/cmyui/Akatsuki-cron-py) \
 [Ainu fork | osuthailand - ainu-cron-py](https://github.com/osuthailand/ainu-cron-py)
+[Debian fork | osuDebian - Cron](https://github.com/osuDebian/Cron)
