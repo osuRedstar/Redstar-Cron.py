@@ -1,3 +1,6 @@
+#Redstar
+Redstar에 맞게 수정함
+
 # Cron
 The cron job write by Python. Based on Akatsuki's cron job and adjusted somethings.
 
