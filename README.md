@@ -1,4 +1,4 @@
-#Redstar
+# Redstar
 Redstar에 맞게 수정함
 
 # Cron
