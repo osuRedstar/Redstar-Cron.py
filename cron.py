@@ -320,7 +320,8 @@ def calculateScorePlaycount():
                     if score < 0: print(f'{YELLOW}Negative score: {score} - UID: {user[0]}{ENDC}'); continue # Ignore negative scores.
 
                     if not completed: playcount += 1; continue
-                    if completed == 3 and ranked == 2: ranked_score += score
+                    #if completed == 3 and ranked == 2: ranked_score += score
+                    if completed == 3 and ranked != 4: ranked_score += score #Qualified를 제외한 모든 랭크상태를 ranked_score에 추가
                     total_score += score
                     playcount += 1
 
