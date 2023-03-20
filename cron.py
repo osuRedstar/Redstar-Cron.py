@@ -325,15 +325,33 @@ def calculateScorePlaycount():
                     total_score += score
                     playcount += 1
 
+
+                #playcount 재 계산 (위에도 있지만 실제 플카가 아니여서 추가함)
+                SQL.execute(f"SELECT playcount FROM {ainu_mode[0]}_beatmap_playcount WHERE user_id = {user[0]}")
+                plca_result = SQL.fetchall()
+                plca = 0
+                for i in plca_result:
+                    plca += i[0]
+
+
                 # Score and playcount calculations complete, insert into DB.
-                SQL.execute('''UPDATE {ainu_mode}_stats
+                """ SQL.execute('''UPDATE {ainu_mode}_stats
                                SET total_score_{game_mode} = %s, ranked_score_{game_mode} = %s, playcount_{game_mode} = %s
                                WHERE id = %s'''.format(
                                    ainu_mode=ainu_mode[0],
                                    game_mode=game_mode[0]
                                 ), [total_score, ranked_score, playcount, user[0]]
+                            ) """
+                SQL.execute('''UPDATE {ainu_mode}_stats
+                               SET total_score_{game_mode} = %s, ranked_score_{game_mode} = %s, playcount_{game_mode} = %s
+                               WHERE id = %s'''.format(
+                                   ainu_mode=ainu_mode[0],
+                                   game_mode=game_mode[0]
+                                ), [total_score, ranked_score, plca, user[0]]
                             )
-                print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {playcount}')
+
+                #print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {playcount}')
+                print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {plca}')
 
     print(f'{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks(f'Successfully completed score and playcount calculations.', f'running time: {time.time() - t_start:.2f} seconds.', 'B9D821')
