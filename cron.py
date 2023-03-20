@@ -327,7 +327,7 @@ def calculateScorePlaycount():
 
 
                 #playcount 재 계산 (위에도 있지만 실제 플카가 아니여서 추가함)
-                SQL.execute(f"SELECT playcount FROM {ainu_mode[0]}_beatmap_playcount WHERE user_id = {user[0]}")
+                SQL.execute(f"SELECT playcount FROM {ainu_mode[0]}_beatmap_playcount WHERE user_id = {user[0]} AND game_mode = {game_mode[1]}")
                 plca_result = SQL.fetchall()
                 plca = 0
                 for i in plca_result:
