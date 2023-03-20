@@ -360,7 +360,7 @@ def calculateScorePlaycount():
     sendWebhooks(f'Successfully completed score and playcount calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '12179489')
     return True
 
-def running_cron():
+def running_cron(job_num = 0):
     #print(f"{CYAN}Cronjob has been started.{ENDC}")
     log.info(f"{CYAN}Cronjob has been started.{ENDC}")
     
@@ -369,13 +369,23 @@ def running_cron():
     now_str = f'{now.tm_year}/{now.tm_mon}/{now.tm_mday} {now.tm_hour}:{now.tm_min}:{now.tm_sec}'
     #sendWebhooks(f'Cronjob has been stated.', now_str, '2139D8')
     sendWebhooks(f'Cronjob has been stated.', now_str, '2177496')
-    if calculateUserTotalPP():print()
-    if calculateRanks(): print()   
-    if updateTotalScores(): print()    
-    #removeExpiredDonorTags 비활성화
-    """ if removeExpiredDonorTags(): print() """
-    if addSupporterBadges(): print()   
-    if calculateScorePlaycount(): print()
+
+    job_num = int(job_num)
+    if job_num == 1 or job_num == 0:
+        if calculateUserTotalPP(): print()  
+    if job_num == 2 or job_num == 0:
+        if calculateRanks(): print()  
+    if job_num == 3 or job_num == 0:
+        if updateTotalScores(): print() 
+    if job_num == 4 or job_num == 0:
+        #removeExpiredDonorTags 비활성화
+        """ if removeExpiredDonorTags(): print() """
+        log.error("비활성화 됨")
+    if job_num == 5 or job_num == 0:
+        if addSupporterBadges(): print()   
+    if job_num == 6 or job_num == 0:
+        if calculateScorePlaycount(): print()
+    
 
     print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks(f'Cronjob execution completed.', f"running time: {time.time() - t_start:.2f} seconds.", '2139D8')
@@ -387,8 +397,32 @@ def running_cron():
 
     threading.Timer((int(SCHEDULE_INTERVAL_MINUTE) * 60), running_cron).start()
 
+def cron_list():
+    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores()", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges()", "calculateScorePlaycount()"]
+    return arr
+
 if __name__ == '__main__':
     #print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}\nDebian --> Redstar Forked that osu!thailand fork Akatsuki. SO..... it is forkforked LUL :D SRY.")
     log.info(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}\nRedstar Forked that Debian Forked that osu!thailand fork Akatsuki. SO..... it is forkforked LUL :D SRY.")
-    running_cron()
+    
+    print()
+    for i in range(len(cron_list())):
+        log.info(f"{i + 1} | {cron_list()[i]}")
+    print()
+    sel_job = input("Choose job (선택하지 않을시 전체 작업 실행) : ")
+    
+    if sel_job == "":
+        log.chat("전체 작업 실행")
+        running_cron()
+    else:
+        log.warning(f"{sel_job}번 작업, {cron_list()[int(sel_job) - 1]} 작업만 실행하시겠습니까?")
+        onejob_comfirm = input("yes 입력 : ")
+
+        if onejob_comfirm == "yes":
+            log.chat("특정 cron 작업 실행")
+            log.chat(f"{sel_job}번 작업, {cron_list()[int(sel_job) - 1]} 작업만 실행중")
+            running_cron(sel_job)
+        else:
+            log.warning("작업 취소")
+
     log.chat("크론작업 끝남")
