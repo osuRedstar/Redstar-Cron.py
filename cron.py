@@ -332,6 +332,8 @@ def calculateScorePlaycount():
                 plca = 0
                 for i in plca_result:
                     plca += i[0]
+                #let/handlers/submitModularHandler.py에서 2번 요청이 있어서 DB에 플카가 2번 들어가기때문에 나누기 2로 실제 플카 반영
+                plca = plca / 2
 
 
                 # Score and playcount calculations complete, insert into DB.
