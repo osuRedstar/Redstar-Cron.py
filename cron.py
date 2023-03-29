@@ -400,7 +400,7 @@ def running_cron(job_num = 0):
     threading.Timer((int(SCHEDULE_INTERVAL_MINUTE) * 60), running_cron).start()
 
 def cron_list():
-    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores()", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges()", "calculateScorePlaycount()"]
+    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores() (현재 비활성화)", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges() (현재 비활성화)", "calculateScorePlaycount() (현재 비활성화)"]
     return arr
 
 if __name__ == '__main__':
