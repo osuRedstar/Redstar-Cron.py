@@ -372,19 +372,21 @@ def running_cron(job_num = 0):
 
     job_num = int(job_num)
     if job_num == 1 or job_num == 0:
-        if calculateUserTotalPP(): print()  
+        if calculateUserTotalPP(): print()
     if job_num == 2 or job_num == 0:
-        if calculateRanks(): print()  
+        if calculateRanks(): print()
     if job_num == 3 or job_num == 0:
-        if updateTotalScores(): print() 
-    if job_num == 4 or job_num == 0:
-        #removeExpiredDonorTags 비활성화
-        """ if removeExpiredDonorTags(): print() """
         log.error("비활성화 됨")
+        #if updateTotalScores(): print()
+    if job_num == 4 or job_num == 0:
+        log.error("비활성화 됨")
+        #if removeExpiredDonorTags(): print()
     if job_num == 5 or job_num == 0:
-        if addSupporterBadges(): print()   
+        log.error("비활성화 됨")
+        #if addSupporterBadges(): print()
     if job_num == 6 or job_num == 0:
-        if calculateScorePlaycount(): print()
+        log.error("비활성화 됨")
+        #if calculateScorePlaycount(): print()
     
 
     print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
