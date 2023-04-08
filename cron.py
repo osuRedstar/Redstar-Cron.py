@@ -333,7 +333,8 @@ def calculateScorePlaycount():
                 for i in plca_result:
                     plca += i[0]
                 #let/handlers/submitModularHandler.py에서 2번 요청이 있어서 DB에 플카가 2번 들어가기때문에 나누기 2로 실제 플카 반영
-                plca = plca / 2
+                #고치기 전까진 비활성화
+                #plca = plca / 2
 
 
                 # Score and playcount calculations complete, insert into DB.
@@ -385,8 +386,7 @@ def running_cron(job_num = 0):
         log.error("비활성화 됨")
         #if addSupporterBadges(): print()
     if job_num == 6 or job_num == 0:
-        log.error("비활성화 됨")
-        #if calculateScorePlaycount(): print()
+        if calculateScorePlaycount(): print()
     
 
     print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
@@ -400,7 +400,7 @@ def running_cron(job_num = 0):
     threading.Timer((int(SCHEDULE_INTERVAL_MINUTE) * 60), running_cron).start()
 
 def cron_list():
-    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores() (현재 비활성화)", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges() (현재 비활성화)", "calculateScorePlaycount() (현재 비활성화)"]
+    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores() (현재 비활성화)", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges() (현재 비활성화)", "calculateScorePlaycount()"]
     return arr
 
 if __name__ == '__main__':
