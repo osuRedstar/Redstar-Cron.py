@@ -130,9 +130,10 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
             if relax and gamemode == "mania":
                 continue
 
-            SQL.execute('SELECT id FROM users WHERE privileges & 1 and id != 999;')
+            SQL.execute('SELECT id, username FROM users WHERE privileges & 1 and id != 999;')
             for row in SQL.fetchall():
                 userID = int(row[0])
+                username = row[1]
                 
                 m = convertMode(gamemode)
                 sql = "select sum(ROUND(ROUND(DD.pp) * pow(0.95,  (DD.RANKING-1)))) as pp from(SELECT ROW_NUMBER() OVER(ORDER BY pp DESC) AS RANKING, userid,pp FROM scores"
@@ -157,14 +158,14 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
                 BEFORE_PP = SQL.fetchone()[0]
 
                 if (NEWPP - BEFORE_PP) > 0:
-                    print(f"    Calculate Done. UID[{userID}] {YELLOW}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
+                    print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {YELLOW}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
                 elif (NEWPP - BEFORE_PP) < 0:
-                    print(f"    Calculate Done. UID[{userID}] {RED}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
+                    print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {RED}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
                 if (NEWPP - BEFORE_PP) > 0 or (NEWPP - BEFORE_PP) < 0:
                     if relax:
-                        relax_w += f"    {gamemode} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                        relax_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
                     else:
-                        vanilla_w += f"    {gamemode} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                        vanilla_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
                     SQL.execute(sql_update)
                 time.sleep(0.5)
             print(f'        {gamemode} Done.')
@@ -285,7 +286,7 @@ def calculateScorePlaycount():
     t_start = time.time()
 
     # Get all users in the database.
-    SQL.execute('SELECT id FROM users WHERE privileges & 1 ORDER BY id ASC')
+    SQL.execute('SELECT id, username FROM users WHERE privileges & 1 ORDER BY id ASC')
     users = SQL.fetchall()
 
     for ainu_mode in [['users', ''], ['rx', '_relax']]:
@@ -317,7 +318,7 @@ def calculateScorePlaycount():
 
                 # Iterate through every score, appending ranked and total score, along with playcount.
                 for score, completed, ranked in SQL.fetchall():
-                    if score < 0: print(f'{YELLOW}Negative score: {score} - UID: {user[0]}{ENDC}'); continue # Ignore negative scores.
+                    if score < 0: print(f'{YELLOW}Negative score: {score} - UNAME: {user[1]}, UID: {user[0]}{ENDC}'); continue # Ignore negative scores.
 
                     if not completed: playcount += 1; continue
                     #if completed == 3 and ranked == 2: ranked_score += score
@@ -354,7 +355,7 @@ def calculateScorePlaycount():
                             )
 
                 #print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {playcount}')
-                print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {plca}')
+                print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[1]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {plca}')
 
     print(f'{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks(f'Successfully completed score and playcount calculations.', f'running time: {time.time() - t_start:.2f} seconds.', 'B9D821')
