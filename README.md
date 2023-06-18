@@ -12,9 +12,9 @@
     <a>디스코드 결과 출력-1</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/4.디스코드%20결과%20출력-1.png"/>
     <a>디스코드 결과 출력-2</a>
-    <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/5.디스코드%20결과%20출력-1.png"/>
+    <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/5.디스코드%20결과%20출력-2.png"/>
     <a>디스코드 결과 출력-3</a>
-    <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/6.디스코드%20결과%20출력-1.png"/>
+    <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/6.디스코드%20결과%20출력-3.png"/>
 </ps>
 # Redstar
 Redstar에 맞게 수정함
