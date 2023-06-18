@@ -5,16 +5,28 @@
 <p align="center">
     <a>코드 실행 직후</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/1.코드실행%20직후.png"/>
+    <br>
+    <br>
     <a>코드 실행중-1</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/2.코드%20실행중-1.png"/>
+    <br>
+    <br>
     <a>코드 실행중-2</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/3.코드%20실행중-2.png"/>
+    <br>
+    <br>
     <a>디스코드 결과 출력-1</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/4.디스코드%20결과%20출력-1.png"/>
+    <br>
+    <br>
     <a>디스코드 결과 출력-2</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/5.디스코드%20결과%20출력-2.png"/>
+    <br>
+    <br>
     <a>디스코드 결과 출력-3</a>
     <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/6.디스코드%20결과%20출력-3.png"/>
+    <br>
+    <br>
 </ps>
 # Redstar
 Redstar에 맞게 수정함
