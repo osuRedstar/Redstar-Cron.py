@@ -3,8 +3,12 @@
 </h1>
 
 <p align="center">
-  <img src="https://proxy.nerinyan.moe/bg/-478405"/>
-</p>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/1.코드실행%20직후.png"/>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/2.코드%20실행중-1.png"/>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/3.코드%20실행중-2.png"/>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/4.디스코드%20결과%20출력-1.png"/>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/5.디스코드%20결과%20출력-1.png"/>
+  <img src="https://github.com/osuRedstar/Redstar-Cron.py/blob/seongpo.s210189/img/6.디스코드%20결과%20출력-1.png"/>
 
 # Redstar
 Redstar에 맞게 수정함
