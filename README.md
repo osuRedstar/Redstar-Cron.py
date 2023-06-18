@@ -1,5 +1,10 @@
-# 2023년 소인수 강좌
-A
+<h1 align="center">
+    2023년 소인수 강좌
+</h1>
+
+<p align="center">
+  <img src="https://proxy.nerinyan.moe/bg/-478405"/>
+</p>
 
 # Redstar
 Redstar에 맞게 수정함
@@ -48,4 +53,5 @@ If there's any issues during setup and runninng the cron job, feel free to post 
 ## Original Repo
 [ORIGINAL | cmyui - Akatsuki-cron-py](https://github.com/cmyui/Akatsuki-cron-py) \
 [Ainu fork | osuthailand - ainu-cron-py](https://github.com/osuthailand/ainu-cron-py) \
-[Debian fork | osuDebian - Cron](https://github.com/osuDebian/Cron)
+[Debian fork | osuDebian - Cron](https://github.com/osuDebian/Cron) \
+[Redstar fork | osuRedstar - Redstar-Cron.py](https://github.com/osuRedstar/Redstar-Cron.py)
