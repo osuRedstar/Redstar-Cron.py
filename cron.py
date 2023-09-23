@@ -85,7 +85,7 @@ def sendWebhooks(title=None, description=None, color=None, fields=None):
     embed.set_footer(text='Cron Job Logs')
     embed.set_timestamp()
 
-    embed.set_image(url="https://b.redstar.moe/bg/-478405")
+    embed.set_image(url="https://b.redstar.moe/bg/+478405")
 
     if fields != None:
         for i in fields:
