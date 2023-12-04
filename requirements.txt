@@ -1,4 +1,4 @@
-redis
-mysql-connector
-discord-webhook
+redis==2.10.6
+mysql-connector==2.2.9
+discord-webhook==0.8.0
 threading
