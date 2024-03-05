@@ -112,6 +112,10 @@ def deleteLeaderboardKeys():
     
     for key in r.scan_iter("ripple:leaderboard*:*"):
         r.delete(key)
+    for key in r.scan_iter("ripple:leaderboard_relax*:*"):
+        r.delete(key)
+    for key in r.scan_iter("ripple:leaderboard_ap*:*"):
+        r.delete(key)
     return True
 
 
@@ -120,14 +124,19 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
     
     t_start = time.time()
     Webhook_fields = []
-    vanilla_w, relax_w = "----\n", "----\n"
+    vanilla_w, relax_w, autopilot_w = "----\n", "----\n", "----\n"
 
-    for relax in range(2):
+    #TODO 지우기
+    """ for relax in range(2):
         print(f'Calculating {"Relax" if relax else "Vanilla"}.')
+        for gamemode in ['std', 'taiko', 'ctb', 'mania']:
+            print(f'    Mode: {gamemode}') """
+    for mode in ["Relax", "Vanila", "Autopilot"]:
+        print(f'Calculating {mode}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'    Mode: {gamemode}')
 
-            if relax and gamemode == "mania":
+            if mode == "Relax" and gamemode == "mania":
                 continue
 
             SQL.execute('SELECT id, username FROM users WHERE privileges & 1 and id != 999;')
@@ -137,8 +146,10 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
                 
                 m = convertMode(gamemode)
                 sql = "select sum(ROUND(ROUND(DD.pp) * pow(0.95,  (DD.RANKING-1)))) as pp from(SELECT ROW_NUMBER() OVER(ORDER BY pp DESC) AS RANKING, userid,pp FROM scores"
-                if relax:
+                if mode == "Relax":
                     sql += "_relax"
+                elif mode == "Autopilot":
+                    sql += "_ap"
                 #sql += f" WHERE beatmap_id in (select beatmap_id from beatmaps where ranked >= 2) AND userid = {userID} AND play_mode = {m} AND completed = 3 LIMIT 500) as DD;"
                 sql += f" WHERE beatmap_md5 in (select beatmap_md5 from beatmaps where ranked = 2 OR ranked = 3) AND userid = {userID} AND play_mode = {m} AND completed = 3 LIMIT 500) as DD;"
                 
@@ -149,9 +160,12 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
                     continue
 
                 sql_update = "update "
-                if relax:
+                if mode == "Relax":
                     sql_update += f"rx_stats set pp_{gamemode} = {NEWPP} where id = {userID}"
                     SQL.execute(f"select pp_{gamemode} from rx_stats where id = {userID}")
+                elif mode == "Autopilot":
+                    sql_update += f"ap_stats set pp_{gamemode} = {NEWPP} where id = {userID}"
+                    SQL.execute(f"select pp_{gamemode} from ap_stats where id = {userID}")
                 else:
                     sql_update += f"users_stats set pp_{gamemode} = {NEWPP} where id = {userID}"
                     SQL.execute(f"select pp_{gamemode} from users_stats where id = {userID}")
@@ -162,8 +176,10 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
                 elif (NEWPP - BEFORE_PP) < 0:
                     print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {RED}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
                 if (NEWPP - BEFORE_PP) > 0 or (NEWPP - BEFORE_PP) < 0:
-                    if relax:
+                    if mode == "Relax":
                         relax_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                    elif mode == "Autopilot":
+                        autopilot_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
                     else:
                         vanilla_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
                     SQL.execute(sql_update)
@@ -171,6 +187,7 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
             print(f'        {gamemode} Done.')
     Webhook_fields.append({"name": "Vanilla", "value": vanilla_w, "inline": False})
     Webhook_fields.append({"name": "Relax", "value": relax_w, "inline": False})
+    Webhook_fields.append({"name": "Autopilot", "value": autopilot_w, "inline": False})
     print(f'{GREEN}-> Successfully completed Performance points calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks('Successfully completed Performance points calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '6BD089', Webhook_fields)
     sendWebhooks('Successfully completed Performance points calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '7065737', Webhook_fields)
@@ -185,13 +202,15 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     if not deletekey:
         return False
 
-    for relax in range(2):
-        print(f'Calculating {"Relax" if relax else "Vanilla"}.')
+    for mode in ["Relax", "Vanila", "Autopilot"]:
+        print(f'Calculating {mode}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'    Mode: {gamemode}')
 
-            if relax:
+            if mode == "Relax":
                 SQL.execute('SELECT rx_stats.id, rx_stats.pp_{gm}, rx_stats.country FROM rx_stats LEFT JOIN users ON users.id = rx_stats.id WHERE rx_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
+            elif mode == "Autopilot":
+                SQL.execute('SELECT ap_stats.id, ap_stats.pp_{gm}, ap_stats.country FROM ap_stats LEFT JOIN users ON users.id = ap_stats.id WHERE ap_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
             else:
                 SQL.execute('SELECT users_stats.id, users_stats.pp_{gm}, users_stats.country FROM users_stats LEFT JOIN users ON users.id = users_stats.id WHERE users_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
 
@@ -200,8 +219,10 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                 pp           = float(row[1])
                 country      = row[2].lower()
 
-                if relax:
+                if mode == "Relax":
                     r.zadd(f'ripple:leaderboard_relax:{gamemode}', userID, pp)
+                elif mode == "Autopilot":
+                    r.zadd(f'ripple:leaderboard_ap:{gamemode}', userID, pp)
                 else:
                     r.zadd(f'ripple:leaderboard:{gamemode}', userID, pp)
 
@@ -209,6 +230,7 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
                     r.zincrby('hanayo:country_list', country, 1)
 
                     r.zadd(f'ripple:leaderboard_relax:{gamemode}:{country}', userID, pp)
+                    r.zadd(f'ripple:leaderboard_ap:{gamemode}:{country}', userID, pp)
                     r.zadd(f'ripple:leaderboard:{gamemode}:{country}', userID, pp)
 
     print(f'{GREEN}-> Successfully completed rank calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
@@ -228,6 +250,10 @@ def updateTotalScores(): # Update the main page values for total scores.
     # Relax.
     SQL.execute('SELECT id FROM scores_relax ORDER BY time DESC LIMIT 1')
     r.set('ripple:submitted_scores_relax', f'{SQL.fetchone()[0] / 1000000:.2f}m')
+
+    # Autopilot.
+    SQL.execute('SELECT id FROM scores_ap ORDER BY time DESC LIMIT 1')
+    r.set('ripple:submitted_scores_ap', f'{SQL.fetchone()[0] / 1000000:.2f}m')
 
     print(f'{GREEN}-> Successfully completed updating total score values.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks('Successfully completed updating total score values.', f'running time: {time.time() - t_start:.2f} seconds.', 'D249D4')
@@ -289,8 +315,8 @@ def calculateScorePlaycount():
     SQL.execute('SELECT id, username FROM users WHERE privileges & 1 ORDER BY id ASC')
     users = SQL.fetchall()
 
-    for ainu_mode in [['users', ''], ['rx', '_relax']]:
-        print(f'Calculating {"Relax" if ainu_mode[1] else "Vanilla"}.')
+    for ainu_mode in [['users', ''], ['rx', '_relax'], ["ap", "_ap"]]:
+        print("Calculating Relax." if "rx" in ainu_mode[0] else ("Calculating Autopilot." if "ap" in ainu_mode[0] else "Calculating Vanilla."))
 
         for game_mode in [['std', '0'], ['taiko', '1'], ['ctb', '2'], ['mania', '3']]:
             print(f'Mode: {game_mode[0]}')
@@ -355,7 +381,7 @@ def calculateScorePlaycount():
                             )
 
                 #print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {playcount}')
-                print(f'    {"Relax" if ainu_mode[1] else "Vanilla"} | {game_mode[0]} | {user[1]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {plca}')
+                print(f'    {"Relax" if "rx" in ainu_mode[0] else ("Autopilot" if "ap" in ainu_mode[0] else "Vanilla")} | {game_mode[0]} | {user[1]} | {user[0]} | total_score: {total_score}, ranked_score: {ranked_score}, play_count: {plca}')
 
     print(f'{GREEN}-> Successfully completed score and playcount calculations.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks(f'Successfully completed score and playcount calculations.', f'running time: {time.time() - t_start:.2f} seconds.', 'B9D821')
