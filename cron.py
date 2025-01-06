@@ -7,21 +7,20 @@ import sys
 from discord_webhook import DiscordWebhook, DiscordEmbed
 import threading
 
-from lets_common_log import logUtils as log
+import logUtils as log
 # Akatsuki-cron-py version number.
 VERSION = 1.29
 
 # Console colours
-CYAN		= '\033[96m'
+CYAN        = '\033[96m'
 MAGENTA     = '\033[95m'
-YELLOW 		= '\033[93m'
-GREEN 		= '\033[92m'
-RED 		= '\033[91m'
-ENDC 		= '\033[0m'
+YELLOW      = '\033[93m'
+GREEN       = '\033[92m'
+RED         = '\033[91m'
+ENDC        = '\033[0m'
 
 SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, REDIS_HOST, REDIS_PORT, REDIS_PASS, REDIS_DB, DISCORD_WEBHOOK, SCHEDULE_INTERVAL_MINUTE = [None] * 10
-with open(f'{os.path.dirname(os.path.realpath(__file__))}/config.ini', 'r') as f:
-    conf_data = f.read().splitlines()
+with open(f'{os.path.dirname(os.path.realpath(__file__))}/config.ini', 'r') as f: conf_data = f.read().splitlines()
 
 for _line in conf_data:
     if not _line: continue
@@ -51,113 +50,80 @@ try:
         database   = SQL_DB,
         autocommit = True)
 except mysql.connector.Error as err:
-    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        raise Exception('Something is wrong with your username or password.')
-    elif err.errno == errorcode.ER_BAD_DB_ERROR:
-        raise Exception('Database does not exist.')
-    else:
-        raise Exception(err)
-else:
-    SQL = cnx.cursor()
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR: raise Exception('Something is wrong with your username or password.')
+    elif err.errno == errorcode.ER_BAD_DB_ERROR: raise Exception('Database does not exist.')
+    else: raise Exception(err)
+else: SQL = cnx.cursor()
 
 if not SQL: raise Exception('Could not connect to SQL.')
 
 # Redis
 r = None
-if len(REDIS_PASS) < 1:
-    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=int(REDIS_DB))
-else:
-    r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=int(REDIS_DB), password=REDIS_PASS)
-
+if len(REDIS_PASS) < 1: r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=int(REDIS_DB))
+else: r = redis.Redis(host=REDIS_HOST, port=REDIS_PORT, db=int(REDIS_DB), password=REDIS_PASS)
 
 #중요! DiscordEmbed() 함수에서 color 항목 일부 동작 안함
 def sendWebhooks(title=None, description=None, color=None, fields=None):
     WEBHOOK_URL = []
     if len(DISCORD_WEBHOOK.split(",")) > 1:
-        for url in DISCORD_WEBHOOK.split(","):
-            url = url.replace(" ", "")
-            WEBHOOK_URL.append(url)
-    else:
-        WEBHOOK_URL.append(DISCORD_WEBHOOK)
+        for url in DISCORD_WEBHOOK.split(","): WEBHOOK_URL.append(url.replace(" ", ""))
+    else: WEBHOOK_URL.append(DISCORD_WEBHOOK)
     webhook = DiscordWebhook(url=WEBHOOK_URL, username="Cron Job")
-    #embed = DiscordEmbed(title=title, description=description, color=color)
     embed = DiscordEmbed(title=title, description=description, color=color)
     embed.set_footer(text='Cron Job Logs')
     embed.set_timestamp()
-
     embed.set_image(url="https://b.redstar.moe/bg/+478405")
 
     if fields != None:
-        for i in fields:
-            embed.add_embed_field(name=i['name'], value=i['value'], inline=i['inline'])
+        for i in fields: embed.add_embed_field(name=i['name'], value=i['value'], inline=i['inline'])
     webhook.add_embed(embed)
     response = webhook.execute()
     print("webhook send!")
 
 def convertMode(mode):
-    if mode == "std":
-        return 0
-    elif mode == "taiko":
-        return 1
-    elif mode == "ctb":
-        return 2
-    elif mode == "mania":
-        return 3
-    else:
-        return 0
+    if mode == "std": return 0
+    elif mode == "taiko": return 1
+    elif mode == "ctb": return 2
+    elif mode == "mania": return 3
+    else: return 0
 
 def deleteLeaderboardKeys():
-    #print('Deleting leaderboard keys in redis')
     log.info('Deleting leaderboard keys in redis')
-    
-    for key in r.scan_iter("ripple:leaderboard*:*"):
-        r.delete(key)
-    for key in r.scan_iter("ripple:leaderboard_relax*:*"):
-        r.delete(key)
-    for key in r.scan_iter("ripple:leaderboard_ap*:*"):
-        r.delete(key)
+    for key in r.scan_iter("ripple:leaderboard*:*"): r.delete(key)
+    for key in r.scan_iter("ripple:leaderboard_relax*:*"): r.delete(key)
+    for key in r.scan_iter("ripple:leaderboard_ap*:*"): r.delete(key)
     return True
-
 
 def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
     print(f'{CYAN}-> Calculating Users Total Performance Points for all users in all gamemodes.{ENDC}')
-    
+
     t_start = time.time()
     Webhook_fields = []
-    vanilla_w, relax_w, autopilot_w = "----\n", "----\n", "----\n"
+    vanilla_w = relax_w = autopilot_w = "----\n"
 
-    #TODO 지우기
-    """ for relax in range(2):
-        print(f'Calculating {"Relax" if relax else "Vanilla"}.')
-        for gamemode in ['std', 'taiko', 'ctb', 'mania']:
-            print(f'    Mode: {gamemode}') """
-    for mode in ["Relax", "Vanila", "Autopilot"]:
+    for mode in ["Vanila", "Relax", "Autopilot"]:
         print(f'Calculating {mode}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'    Mode: {gamemode}')
 
-            if mode == "Relax" and gamemode == "mania":
-                continue
+            if mode == "Relax" and gamemode == "mania": continue
+            elif mode == "Autopilot" and gamemode != "std": continue
 
             SQL.execute('SELECT id, username FROM users WHERE privileges & 1 and id != 999;')
             for row in SQL.fetchall():
                 userID = int(row[0])
                 username = row[1]
-                
+
                 m = convertMode(gamemode)
                 sql = "select sum(ROUND(ROUND(DD.pp) * pow(0.95,  (DD.RANKING-1)))) as pp from(SELECT ROW_NUMBER() OVER(ORDER BY pp DESC) AS RANKING, userid,pp FROM scores"
-                if mode == "Relax":
-                    sql += "_relax"
-                elif mode == "Autopilot":
-                    sql += "_ap"
+                if mode == "Relax": sql += "_relax"
+                elif mode == "Autopilot": sql += "_ap"
                 #sql += f" WHERE beatmap_id in (select beatmap_id from beatmaps where ranked >= 2) AND userid = {userID} AND play_mode = {m} AND completed = 3 LIMIT 500) as DD;"
                 sql += f" WHERE beatmap_md5 in (select beatmap_md5 from beatmaps where ranked = 2 OR ranked = 3) AND userid = {userID} AND play_mode = {m} AND completed = 3 LIMIT 500) as DD;"
-                
+
                 SQL.execute(sql)
                 NEWPP = SQL.fetchone()[0]
-
-                if NEWPP is None:
-                    continue
+                if NEWPP is None: continue
 
                 sql_update = "update "
                 if mode == "Relax":
@@ -171,17 +137,12 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
                     SQL.execute(f"select pp_{gamemode} from users_stats where id = {userID}")
                 BEFORE_PP = SQL.fetchone()[0]
 
-                if (NEWPP - BEFORE_PP) > 0:
-                    print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {YELLOW}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
-                elif (NEWPP - BEFORE_PP) < 0:
-                    print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {RED}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
+                if (NEWPP - BEFORE_PP) > 0: print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {YELLOW}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
+                elif (NEWPP - BEFORE_PP) < 0: print(f"    Calculate Done. UNAME[{username}] UID[{userID}] {RED}{BEFORE_PP}pp => {NEWPP}pp{ENDC}")
                 if (NEWPP - BEFORE_PP) > 0 or (NEWPP - BEFORE_PP) < 0:
-                    if mode == "Relax":
-                        relax_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
-                    elif mode == "Autopilot":
-                        autopilot_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
-                    else:
-                        vanilla_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                    if mode == "Relax": relax_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                    elif mode == "Autopilot": autopilot_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
+                    else: vanilla_w += f"    {gamemode} | {username} | {userID} | {BEFORE_PP}pp => {NEWPP}pp\n"
                     SQL.execute(sql_update)
                 time.sleep(0.5)
             print(f'        {gamemode} Done.')
@@ -193,42 +154,33 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
     sendWebhooks('Successfully completed Performance points calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '7065737', Webhook_fields)
     return True
 
-
 def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     print(f'{CYAN}-> Calculating ranks for all users in all gamemodes.{ENDC}')
     t_start = time.time()
 
     deletekey = deleteLeaderboardKeys()
-    if not deletekey:
-        return False
+    if not deletekey: return False
 
-    for mode in ["Relax", "Vanila", "Autopilot"]:
+    for mode in ["Vanila", "Relax", "Autopilot"]:
         print(f'Calculating {mode}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
             print(f'    Mode: {gamemode}')
 
-            if mode == "Relax":
-                SQL.execute('SELECT rx_stats.id, rx_stats.pp_{gm}, rx_stats.country FROM rx_stats LEFT JOIN users ON users.id = rx_stats.id WHERE rx_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
-            elif mode == "Autopilot":
-                SQL.execute('SELECT ap_stats.id, ap_stats.pp_{gm}, ap_stats.country FROM ap_stats LEFT JOIN users ON users.id = ap_stats.id WHERE ap_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
-            else:
-                SQL.execute('SELECT users_stats.id, users_stats.pp_{gm}, users_stats.country FROM users_stats LEFT JOIN users ON users.id = users_stats.id WHERE users_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
+            if mode == "Relax": SQL.execute('SELECT rx_stats.id, rx_stats.pp_{gm}, rx_stats.country FROM rx_stats LEFT JOIN users ON users.id = rx_stats.id WHERE rx_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
+            elif mode == "Autopilot": SQL.execute('SELECT ap_stats.id, ap_stats.pp_{gm}, ap_stats.country FROM ap_stats LEFT JOIN users ON users.id = ap_stats.id WHERE ap_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
+            else: SQL.execute('SELECT users_stats.id, users_stats.pp_{gm}, users_stats.country FROM users_stats LEFT JOIN users ON users.id = users_stats.id WHERE users_stats.pp_{gm} > 0 AND users.privileges & 1 ORDER BY pp_{gm} DESC'.format(gm=gamemode))
 
             for row in SQL.fetchall():
-                userID       = int(row[0])
-                pp           = float(row[1])
-                country      = row[2].lower()
+                userID  = int(row[0])
+                pp      = float(row[1])
+                country = row[2].lower()
 
-                if mode == "Relax":
-                    r.zadd(f'ripple:leaderboard_relax:{gamemode}', userID, pp)
-                elif mode == "Autopilot":
-                    r.zadd(f'ripple:leaderboard_ap:{gamemode}', userID, pp)
-                else:
-                    r.zadd(f'ripple:leaderboard:{gamemode}', userID, pp)
+                if mode == "Relax": r.zadd(f'ripple:leaderboard_relax:{gamemode}', userID, pp)
+                elif mode == "Autopilot": r.zadd(f'ripple:leaderboard_ap:{gamemode}', userID, pp)
+                else: r.zadd(f'ripple:leaderboard:{gamemode}', userID, pp)
 
                 if country != 'xx':
                     r.zincrby('hanayo:country_list', country, 1)
-
                     r.zadd(f'ripple:leaderboard_relax:{gamemode}:{country}', userID, pp)
                     r.zadd(f'ripple:leaderboard_ap:{gamemode}:{country}', userID, pp)
                     r.zadd(f'ripple:leaderboard:{gamemode}:{country}', userID, pp)
@@ -237,7 +189,6 @@ def calculateRanks(): # Calculate hanayo ranks based off db pp values.
     #sendWebhooks('Successfully completed rank calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '007AAE')
     sendWebhooks('Successfully completed rank calculations.', f'running time: {time.time() - t_start:.2f} seconds.', '31406')
     return True
-
 
 def updateTotalScores(): # Update the main page values for total scores.
     print(f'{CYAN}-> Updating total score values.{ENDC}')
@@ -260,7 +211,6 @@ def updateTotalScores(): # Update the main page values for total scores.
     sendWebhooks('Successfully completed updating total score values.', f'running time: {time.time() - t_start:.2f} seconds.', '13781460')
     return True
 
-
 def removeExpiredDonorTags(): # Remove supporter tags from users who no longer have them owo.
     print(f'{CYAN}-> Cleaning expired donation perks and badges.{ENDC}')
     t_start = time.time()
@@ -276,11 +226,8 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
         users_W += f"{user[1]}\n"
 
         SQL.execute('UPDATE users SET privileges = privileges - 4 WHERE id = %s', [user[0]])
-
         SQL.execute('SELECT id FROM user_badges WHERE badge IN (1002) AND user = %s', [user[0]])
-
-        for badge in SQL.fetchall():
-            SQL.execute('DELETE FROM user_badges WHERE id = %s', [badge[0]])
+        for badge in SQL.fetchall(): SQL.execute('DELETE FROM user_badges WHERE id = %s', [badge[0]])
 
     # Grab a count of the expired badges to print.
     # TODO: make this use SQL.rowcount or w/e its called. I know it exists.
@@ -295,7 +242,6 @@ def removeExpiredDonorTags(): # Remove supporter tags from users who no longer h
     sendWebhooks(f'Successfully cleaned {len(expired_donors)} expired donor tags and {expired_badges} expired badges.', f'running time: {time.time() - t_start:.2f} seconds.', '16020344', Webhook_fields)
     return True
 
-
 def addSupporterBadges(): # This is retarded please cmyui do this properly in the future TODO fucking hell.
     print(f'{CYAN}-> Adding donation badges.{ENDC}')
     t_start = time.time()
@@ -305,7 +251,6 @@ def addSupporterBadges(): # This is retarded please cmyui do this properly in th
     #sendWebhooks(f'Donation badges added to users.', f'running time: {time.time() - t_start:.2f} seconds.', '73EDF4')
     sendWebhooks(f'Donation badges added to users.', f'running time: {time.time() - t_start:.2f} seconds.', '7597556')
     return True
-
 
 def calculateScorePlaycount():
     print(f'{CYAN}-> Calculating score (total, ranked) and playcount for all users in all gamemodes.{ENDC}')
@@ -352,17 +297,14 @@ def calculateScorePlaycount():
                     total_score += score
                     playcount += 1
 
-
                 #playcount 재 계산 (위에도 있지만 실제 플카가 아니여서 추가함)
                 SQL.execute(f"SELECT playcount FROM {ainu_mode[0]}_beatmap_playcount WHERE user_id = {user[0]} AND game_mode = {game_mode[1]}")
                 plca_result = SQL.fetchall()
                 plca = 0
-                for i in plca_result:
-                    plca += i[0]
+                for i in plca_result: plca += i[0]
                 #let/handlers/submitModularHandler.py에서 2번 요청이 있어서 DB에 플카가 2번 들어가기때문에 나누기 2로 실제 플카 반영
                 #고치기 전까진 비활성화
                 #plca = plca / 2
-
 
                 # Score and playcount calculations complete, insert into DB.
                 """ SQL.execute('''UPDATE {ainu_mode}_stats
@@ -391,7 +333,7 @@ def calculateScorePlaycount():
 def running_cron(job_num = 0):
     #print(f"{CYAN}Cronjob has been started.{ENDC}")
     log.info(f"{CYAN}Cronjob has been started.{ENDC}")
-    
+
     t_start = time.time()
     now = time.localtime()
     now_str = f'{now.tm_year}/{now.tm_mon}/{now.tm_mday} {now.tm_hour}:{now.tm_min}:{now.tm_sec}'
@@ -414,7 +356,6 @@ def running_cron(job_num = 0):
         #if addSupporterBadges(): print()
     if job_num == 6 or job_num == 0:
         if calculateScorePlaycount(): print()
-    
 
     print(f'{GREEN}-> Cronjob execution completed.\n{MAGENTA}Time: {time.time() - t_start:.2f} seconds.{ENDC}')
     #sendWebhooks(f'Cronjob execution completed.', f"running time: {time.time() - t_start:.2f} seconds.", '2139D8')
@@ -423,23 +364,19 @@ def running_cron(job_num = 0):
     #---------------------------------------------------------------------------------------------------- 추가
     webhook = DiscordWebhook(url=DISCORD_WEBHOOK, content='----------------------------------------------------------------------------------------------------')
     response = webhook.execute()
-
     threading.Timer((int(SCHEDULE_INTERVAL_MINUTE) * 60), running_cron).start()
 
-def cron_list():
-    arr = ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores() (현재 비활성화)", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges() (현재 비활성화)", "calculateScorePlaycount()"]
-    return arr
+def cron_list(): return ["calculateUserTotalPP()", "calculateRanks()", "updateTotalScores() (현재 비활성화)", "removeExpiredDonorTags() (현재 비활성화)", "addSupporterBadges() (현재 비활성화)", "calculateScorePlaycount()"]
 
 if __name__ == '__main__':
     #print(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}\nDebian --> Redstar Forked that osu!thailand fork Akatsuki. SO..... it is forkforked LUL :D SRY.")
     log.info(f"{CYAN}Akatsuki's cron - v{VERSION}.{ENDC}\nRedstar Forked that Debian Forked that osu!thailand fork Akatsuki. SO..... it is forkforked LUL :D SRY.")
-    
+
     print()
-    for i in range(len(cron_list())):
-        log.info(f"{i + 1} | {cron_list()[i]}")
+    for i in range(len(cron_list())): log.info(f"{i + 1} | {cron_list()[i]}")
     print()
     sel_job = input("Choose job (선택하지 않을시 전체 작업 실행) : ")
-    
+
     if sel_job == "":
         log.chat("전체 작업 실행")
         running_cron()
@@ -451,7 +388,5 @@ if __name__ == '__main__':
             log.chat("특정 cron 작업 실행")
             log.chat(f"{sel_job}번 작업, {cron_list()[int(sel_job) - 1]} 작업만 실행중")
             running_cron(sel_job)
-        else:
-            log.warning("작업 취소")
-
+        else: log.warning("작업 취소")
     log.chat("크론작업 끝남")
