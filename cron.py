@@ -104,10 +104,9 @@ def calculateUserTotalPP(): # Calculate Users Total PP based off users score db.
     for mode in ["Vanila", "Relax", "Autopilot"]:
         print(f'Calculating {mode}.')
         for gamemode in ['std', 'taiko', 'ctb', 'mania']:
-            print(f'    Mode: {gamemode}')
-
             if mode == "Relax" and gamemode == "mania": continue
             elif mode == "Autopilot" and gamemode != "std": continue
+            print(f'    Mode: {gamemode}')
 
             SQL.execute('SELECT id, username FROM users WHERE privileges & 1 and id != 999;')
             for row in SQL.fetchall():
